@@ -12,10 +12,13 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "react-scripts": "^5.0.1"
+    "react-scripts": "^2.1.3"
   },
   "dependencies": {
+    "bootstrap": "^5.1.3",
     "react": "^18.2.0",
+    "react-bootstrap": "^2.4.0",
+    "react-bootstrap-range-slider": "^3.0.8",
     "react-dom": "^18.2.0"
   },
   "browserslist": {
@@ -29,5 +32,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "homepage": "."
 }

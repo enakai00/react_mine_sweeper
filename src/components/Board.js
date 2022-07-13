@@ -4,9 +4,11 @@ import Cell from "./Board/Cell";
 export default class Board extends React.Component {
   constructor(props) {
     super(props);
-    this.size = 8;
-    this.level = 0.2;
+    this.size = props.size;
+    this.level = props.level;
     this.finished = false;
+    this.lastX = 0;
+    this.lastY = 0;
     this.field = new Array(this.size)
     this.bombs = new Array(this.size)
 
@@ -19,7 +21,7 @@ export default class Board extends React.Component {
       }
     }
 
-    let numberOfBombs = Math.floor(this.size * this.size * this.level);
+    let numberOfBombs = Math.floor(this.size * this.size * 0.1 * (this.level+1));
     for (let i = 0; i < numberOfBombs; i++) {
       let x = Math.floor(Math.random() * this.size);
       let y = Math.floor(Math.random() * this.size);
@@ -33,6 +35,14 @@ export default class Board extends React.Component {
     this.clickCount = 0;
   }
 
+  undo() {
+    let x = this.lastX;
+    let y = this.lastY;
+    this.field[y][x] = " ";
+    this.setState({field: this.field});
+    this.finished = false;
+  }
+
   onClick(x, y) {
     this.clickCount++;
     if (this.clickCount < 2) {
@@ -44,7 +54,7 @@ export default class Board extends React.Component {
         }
         this.clickCount = 0;
         this.checkCompletion();
-      }, 200);
+      }, 240);
     }
   }
 
@@ -52,10 +62,10 @@ export default class Board extends React.Component {
     for (let y = 0; y < this.size; y++) {
       for (let x = 0; x < this.size; x++) {
         let mark = this.field[y][x];
-        if (mark == " " || mark == "?") {
+        if (mark === " " || mark === "?") {
           return;
         }
-        if (mark == "*" && this.bombs[y][x] == false) {
+        if (mark === "*" && this.bombs[y][x] === false) {
           return;
         }
       }
@@ -65,27 +75,30 @@ export default class Board extends React.Component {
   }
 
   markCell(x, y) {
-    switch (this.state.field[y][x]) {
+    switch (this.field[y][x]) {
       case " ":
-        this.state.field[y][x] = "*";
-        this.setState({field: this.state.field});
+        this.field[y][x] = "*";
+        this.setState({field: this.field});
         break
       case "*":
-        this.state.field[y][x] = "?";
-        this.setState({field: this.state.field});
+        this.field[y][x] = "?";
+        this.setState({field: this.field});
         break
       case "?":
-        this.state.field[y][x] = " ";
-        this.setState({field: this.state.field});
+        this.field[y][x] = " ";
+        this.setState({field: this.field});
         break
+      default:
     }
   }
 
   openCell(x, y) {
     let mark = this.field[y][x];
-    if (mark != " " && mark != "*" && mark != "?") {
+    if (mark !== " " && mark !== "*" && mark !== "?") {
       return;
     }
+    this.lastX = x;
+    this.lastY = y;
     if (this.bombs[y][x]) { // game over
       this.field[y][x] = "X";
       this.setState({field: this.field});
@@ -97,22 +110,22 @@ export default class Board extends React.Component {
     let bombsCount = 0;
     for (let dy = -1; dy < 2; dy++) {
       for (let dx = -1; dx < 2; dx++) {
-        if (dx == 0 && dy == 0) {
+        if (dx === 0 && dy === 0) {
           continue;
         }
         if (x + dx < 0 || x + dx >= this.size || y + dy < 0 || y + dy >= this.size) {
           continue;
         }
-        if (this.bombs[y+dy][x+dx]==true) {
+        if (this.bombs[y+dy][x+dx]===true) {
           bombsCount++;
         }
       }
     }
     this.field[y][x] = bombsCount.toString();
-    if (bombsCount == 0) {
+    if (bombsCount === 0) {
       for (let dy = -1; dy < 2; dy++) {
         for (let dx = -1; dx < 2; dx++) {
-          if (dx == 0 && dy == 0) {
+          if (dx === 0 && dy === 0) {
             continue;
           }
           if (x + dx < 0 || x + dx >= this.size || y + dy < 0 || y + dy >= this.size) {
