@@ -6,9 +6,12 @@ export default class Board extends React.Component {
     super(props);
     this.size = props.size;
     this.level = props.level;
-    this.finished = false;
+
+    this.freeze = false;
     this.lastX = 0;
     this.lastY = 0;
+    this.depth = 0;
+    this.clickCount = 0;
     this.field = new Array(this.size)
     this.bombs = new Array(this.size)
 
@@ -21,18 +24,21 @@ export default class Board extends React.Component {
       }
     }
 
-    let numberOfBombs = Math.floor(this.size * this.size * 0.1 * (this.level+1));
+    let numberOfBombs = Math.floor(
+        this.size * this.size * 0.1 * (this.level+1));
     for (let i = 0; i < numberOfBombs; i++) {
       let x = Math.floor(Math.random() * this.size);
       let y = Math.floor(Math.random() * this.size);
       this.bombs[y][x] = true;
     }
 
+    this.sleep = (milliseconds) => {
+      return new Promise(resolve => setTimeout(resolve, milliseconds))
+    }
+
     this.state = {
       field: this.field,
     }
-
-    this.clickCount = 0;
   }
 
   undo() {
@@ -40,7 +46,7 @@ export default class Board extends React.Component {
     let y = this.lastY;
     this.field[y][x] = " ";
     this.setState({field: this.field});
-    this.finished = false;
+    this.freeze = false;
   }
 
   onClick(x, y) {
@@ -70,7 +76,7 @@ export default class Board extends React.Component {
         }
       }
     }
-    this.finished = true;
+    this.freeze = true;
     this.props.onFinish(true);
   }
 
@@ -93,16 +99,26 @@ export default class Board extends React.Component {
   }
 
   openCell(x, y) {
+    if (this.depth === 0) {
+      this.depth = 1;
+    }
+    this.freeze = true;
     let mark = this.field[y][x];
     if (mark !== " " && mark !== "*" && mark !== "?") {
+      this.depth--;
+      if (this.depth === 0) {
+        this.freeze = false;
+        this.setState({}); // Reflect this.freeze to the component
+      }
       return;
     }
+
     this.lastX = x;
     this.lastY = y;
     if (this.bombs[y][x]) { // game over
       this.field[y][x] = "X";
       this.setState({field: this.field});
-      this.finished = true;
+      this.freeze = true;
       this.props.onFinish(false);
       return;
     }
@@ -131,11 +147,18 @@ export default class Board extends React.Component {
           if (x + dx < 0 || x + dx >= this.size || y + dy < 0 || y + dy >= this.size) {
             continue;
           }
-          this.openCell(x+dx, y+dy);
+          this.depth++;
+          this.sleep(10).then(r => this.openCell(x+dx, y+dy));
         }
       }
     }
-    this.setState({field: this.field})
+
+    this.depth--;
+    if (this.depth === 0) {
+      this.freeze = false;
+    }
+    this.setState({field: this.field});
+    return;
   }
 
   render() {
@@ -144,7 +167,7 @@ export default class Board extends React.Component {
       let row_elements = [];
       for (let x = 0; x < this.size; x++) {
         row_elements.push(<Cell key={x}
-            onClick={this.finished ? null : () => this.onClick(x, y)}
+            onClick={this.freeze ? null : () => this.onClick(x, y)}
             mark={this.state.field[y][x]}/>);
       };
       field_elements.push(<div key={y} className="board-row">{row_elements}</div>);
