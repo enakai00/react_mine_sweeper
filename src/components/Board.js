@@ -1,5 +1,10 @@
 import React from "react";
-import Cell from "./Board/Cell";
+
+
+const Cell = (props) => {
+  return  <button className="cell" onClick={props.onClick}>{props.mark}</button>;
+}
+
 
 export default class Board extends React.Component {
   constructor(props) {
@@ -8,8 +13,7 @@ export default class Board extends React.Component {
     this.level = props.level;
 
     this.freeze = false;
-    this.lastX = 0;
-    this.lastY = 0;
+    this.lastCell = [0, 0];
     this.depth = 0;
     this.clickCount = 0;
     this.field = new Array(this.size)
@@ -18,10 +22,8 @@ export default class Board extends React.Component {
     for (let y = 0; y < this.size; y++) {
       this.field[y] = new Array(this.size);
       this.bombs[y] = new Array(this.size);
-      for (let x = 0; x < this.size; x++) {
-        this.field[y][x] = " ";
-        this.bombs[y][x] = false;
-      }
+      this.field[y].fill(" ");
+      this.bombs[y].fill(false);
     }
 
     let numberOfBombs = Math.floor(
@@ -42,8 +44,7 @@ export default class Board extends React.Component {
   }
 
   undo() {
-    let x = this.lastX;
-    let y = this.lastY;
+    let [x, y] = this.lastCell;
     this.field[y][x] = " ";
     this.setState({field: this.field});
     this.freeze = false;
@@ -113,8 +114,7 @@ export default class Board extends React.Component {
       return;
     }
 
-    this.lastX = x;
-    this.lastY = y;
+    this.lastCell = [x, y];
     if (this.bombs[y][x]) { // game over
       this.field[y][x] = "X";
       this.setState({field: this.field});
