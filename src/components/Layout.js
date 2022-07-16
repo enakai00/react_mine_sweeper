@@ -2,8 +2,10 @@ import React from "react";
 import { Container, Heading, Box, Button } from "@chakra-ui/react";
 
 import Board from "./Board";
+import Timer from "./Timer";
 import Config from "./Config";
 import "./Layout.css";
+
 
 export default class Layout extends React.Component {
   constructor(props) {
@@ -12,14 +14,15 @@ export default class Layout extends React.Component {
     this.restart = this.restart.bind(this);
     this.undo = this.undo.bind(this);
     this.gameID = new Date().getTime();
-    this.timerID = null;
     this.state = {
       size: 8,
       level: 1,
       message: "Good Luck...",
       showUndo: "hidden",
-      timer: 0,
+      timerStatus: "start",
     }
+    this.BoardRef = React.createRef();
+    this.ConfigRef = React.createRef();
   }
 
   undo() {
@@ -27,28 +30,24 @@ export default class Layout extends React.Component {
       showUndo: "hidden",
       message: "Good Luck...",
     });
-    this.startTimer();
-    this.refs.Board.undo();
+    this.setState({timerStatus: "start"});
+    this.BoardRef.undo();
   }
 
   restart() {
     this.setState({
       message: "Good Luck...",
       showUndo: "hidden",
-      size: this.refs.Config.getBoardSize(),
-      level: this.refs.Config.getLevel(),
-      timer: 0,
+      size: this.ConfigRef.getBoardSize(),
+      level: this.ConfigRef.getLevel(),
+      timerStatus: "reset",
     });
-    if (this.timerID) {
-      clearInterval(this.timerID);
-    }
-    this.timerID = null;
     this.gameID = new Date().getTime();
   }
 
   onFinish(isWin) {
     let message = "";
-    clearInterval(this.timerID);
+    this.setState({timerStatus: "stop"});
     if (isWin) {
       message = "Congratulations!";
       this.setState({message: message});
@@ -61,33 +60,26 @@ export default class Layout extends React.Component {
     }
   }
 
-  startTimer() {
-    this.timerID = setInterval(() => {
-      this.setState(state => {return {timer: state.timer+1}})}, 1000);
-  }
-
   render() {
     const size = this.state.size;
     const level = this.state.level;
-    if (!this.timerID) {
-      this.startTimer();
-    }
 
     const element = (
       <Container p="8" minWidth="2xl" maxWidth="2xl">
         <Heading m="2" as="h1" fontSize="3xl" w="full">MineSweeper</Heading>
 
-        <Board ref='Board' key={this.gameID} onFinish={this.onFinish}
+        <Board ref={this.BoardRef} key={this.gameID} onFinish={this.onFinish}
           level={level} size={size}/>
 
-        <Box m="1" fontSize="md">Elapsed Time: {this.state.timer}sec</Box>
+        <Timer status={this.state.timerStatus} text="Elapsed Time: []sec" />
+
         <Box m="1" fontSize="2xl">{this.state.message}</Box>
 
         <Button colorScheme="red" size="sm"
           style={{ visibility: this.state.showUndo }}
           onClick={this.undo}>Undo</Button>
 
-        <Config ref="Config" />
+        <Config ref={this.ConfigRef} />
 
         <Button colorScheme="blue" size="sm"
           onClick={this.restart}>Restart</Button>
