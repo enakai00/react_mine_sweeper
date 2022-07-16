@@ -31,18 +31,20 @@ export default class Layout extends React.Component {
       message: "Good Luck...",
     });
     this.setState({timerStatus: "start"});
-    this.BoardRef.undo();
+    this.BoardRef.current.undo();
   }
 
   restart() {
+    const boardSize = this.ConfigRef.current.state.boardSize;
+    const level = this.ConfigRef.current.state.level;
+    this.gameID = new Date().getTime();
     this.setState({
       message: "Good Luck...",
       showUndo: "hidden",
-      size: this.ConfigRef.getBoardSize(),
-      level: this.ConfigRef.getLevel(),
-      timerStatus: "reset",
+      size: boardSize,
+      level: level,
+      timerStatus: this.gameID, // random string to reset
     });
-    this.gameID = new Date().getTime();
   }
 
   onFinish(isWin) {

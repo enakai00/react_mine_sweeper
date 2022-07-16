@@ -7,11 +7,12 @@ export default function Timer(props) {
 
   const handleTimerChange = () => {
     const startTimer = () => {
-      if (!timerID) {
-        const newTimerID = setInterval(
-          () => {setCount((preCount) => {return preCount+1})}, 1000);
-        setTimerID(newTimerID);
+      if (timerID) {
+        clearInterval(timerID);
       }
+      const newTimerID = setInterval(
+        () => {setCount((preCount) => {return preCount+1})}, 1000);
+      setTimerID(newTimerID);
     };
 
     const stopTimer = () => {
@@ -28,13 +29,9 @@ export default function Timer(props) {
       case "stop":
         stopTimer();
         break;
-      case "reset":
-        stopTimer();
+      default: // reset
         setCount(0);
         startTimer();
-        break;
-      default:
-        break;
     };
   };
 

@@ -15,15 +15,8 @@ export default class Config extends React.Component {
     this.state = {
       boardSize: 8,
       level: 1,
-    }
-  }
+    };
 
-  getBoardSize() {
-    return this.state.boardSize;
-  }
-
-  getLevel() {
-    return this.state.level;
   }
 
   render() {
