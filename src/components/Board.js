@@ -74,8 +74,10 @@ export default class Board extends React.Component {
     if (this.clickCount < 2) {
       setTimeout(() => {
         if (this.clickCount > 1) {
+          // Single click
           this.openCell(x, y);
         } else {
+          // Double click
           this.markCell(x, y);
           this.checkCompletion();
         }
@@ -120,9 +122,13 @@ export default class Board extends React.Component {
 
   openCell(x, y) {
     const finalize = () => {
-      this.freeze = false;
-      this.setState({}); // Reflect this.freeze to the component
-      this.sleep(10).then(() => this.checkCompletion());
+      // Update states and check completion.
+      const doUpdate = new Promise(resolve => {
+        this.freeze = false;
+        this.setState({});
+        resolve();
+      });
+      doUpdate.then(() => this.checkCompletion());
     };
 
     if (this.depth === 0) {
@@ -153,7 +159,7 @@ export default class Board extends React.Component {
         if (dx === 0 && dy === 0) {
           continue;
         }
-        if (x + dx < 0 || x + dx >= this.size || y + dy < 0 || y + dy >= this.size) {
+        if (x+dx < 0 || x+dx >= this.size || y+dy < 0 || y+dy >= this.size) {
           continue;
         }
         if (this.bombs[y+dy][x+dx]===true) {
@@ -168,7 +174,7 @@ export default class Board extends React.Component {
           if (dx === 0 && dy === 0) {
             continue;
           }
-          if (x + dx < 0 || x + dx >= this.size || y + dy < 0 || y + dy >= this.size) {
+          if (x+dx < 0 || x+dx >= this.size || y+dy < 0 || y+dy >= this.size) {
             continue;
           }
           this.depth++;

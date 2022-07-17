@@ -23,7 +23,7 @@ export default class Config extends React.Component {
     const levelStrings = {0: "Easy", 1: "Normal", 2: "Hard"}
     let element = (
       <>
-        <Box mb="2" mt="4" fontSize="xl" w="full">Configuration</Box>
+        <Box mb="2" pt="2" fontSize="xl" w="full">Configuration</Box>
         <Box>Board Size: {this.state.boardSize}</Box>
         <Box p="2" pr="10" width="xs">
           <Slider defaultValue={8} min={4} max={16} value={this.state.boardSize}
