@@ -4,7 +4,6 @@ import { Container, Heading, Box, Button } from "@chakra-ui/react";
 import Board from "./Board";
 import Timer from "./Timer";
 import Config from "./Config";
-import "./Layout.css";
 
 
 export default class Layout extends React.Component {

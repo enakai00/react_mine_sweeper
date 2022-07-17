@@ -1,26 +1,28 @@
 import React from "react";
+import "./Board.css";
 
 
 const Cell = (props) => {
   const nums = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
+  var element;
 
-  let element = (
-    <button className="cell" onClick={props.onClick}>
-    {props.mark}</button>
-  );
   if (props.mark === "0") {
     element = (
-      <button className="cell cell_open"></button>
+      <button className="cell cell_open" />
     );
-  }
-  if (nums.includes(props.mark)) {
+  } else if (nums.includes(props.mark)) {
     element = (
       <button className="cell cell_open">{props.mark}</button>
+    );
+  } else {
+    element = (
+      <button className="cell" onClick={props.onClick}>
+      {props.mark}</button>
     );
   }
 
   return element;
-}
+};
 
 
 export default class Board extends React.Component {
