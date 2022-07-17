@@ -5,8 +5,8 @@
 }
 
 .cell {
-  background: #fff;
-  border: 1px solid #999;
+  background: #ddd;
+  border: 1px solid #ccc;
   float: left;
   font-family: monospace;
   font-size: 24px;
@@ -18,6 +18,10 @@
   padding: 0;
   text-align: center;
   width: 34px;
+}
+
+.cell_open {
+  background: #fff;
 }
 
 .cell:focus {

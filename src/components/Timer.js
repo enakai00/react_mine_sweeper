@@ -1,28 +1,28 @@
 import React, { useState, useEffect } from "react";
 import { Box } from "@chakra-ui/react";
 
-export default function Timer(props) {
+const useTimer = (status) => {
   const [count, setCount] = useState(0);
   const [timerID, setTimerID] = useState(null);
 
+  const startTimer = () => {
+    if (timerID) {
+      clearInterval(timerID);
+    }
+    const newTimerID = setInterval(
+      () => {setCount((preCount) => {return preCount+1})}, 1000);
+    setTimerID(newTimerID);
+  };
+
+  const stopTimer = () => {
+    if (timerID) {
+      clearInterval(timerID);
+      setTimerID(null);
+    }
+  };
+
   const handleTimerChange = () => {
-    const startTimer = () => {
-      if (timerID) {
-        clearInterval(timerID);
-      }
-      const newTimerID = setInterval(
-        () => {setCount((preCount) => {return preCount+1})}, 1000);
-      setTimerID(newTimerID);
-    };
-
-    const stopTimer = () => {
-      if (timerID) {
-        clearInterval(timerID);
-        setTimerID(null);
-      }
-    };
-
-    switch (props.status) {
+    switch (status) {
       case "start":
         startTimer();
         break;
@@ -31,12 +31,19 @@ export default function Timer(props) {
         break;
       default: // reset
         setCount(0);
-        startTimer();
+        stopTimer();
+        //startTimer();
     };
   };
 
-  useEffect(handleTimerChange, [props.status]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(handleTimerChange, [status]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  return count;
+}
+
+
+export default function Timer(props) {
+  const count = useTimer(props.status);
   const text = props.text.replace("[]", count);
   const element = (
     <Box m="1">{text}</Box>

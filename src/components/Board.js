@@ -2,7 +2,24 @@ import React from "react";
 
 
 const Cell = (props) => {
-  return  <button className="cell" onClick={props.onClick}>{props.mark}</button>;
+  const nums = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
+
+  let element = (
+    <button className="cell" onClick={props.onClick}>
+    {props.mark}</button>
+  );
+  if (props.mark === "0") {
+    element = (
+      <button className="cell cell_open"></button>
+    );
+  }
+  if (nums.includes(props.mark)) {
+    element = (
+      <button className="cell cell_open">{props.mark}</button>
+    );
+  }
+
+  return element;
 }
 
 
@@ -26,7 +43,7 @@ export default class Board extends React.Component {
       this.bombs[y].fill(false);
     }
 
-    let numberOfBombs = Math.floor(
+    const numberOfBombs = Math.floor(
         this.size * this.size * 0.1 * (this.level+1));
     for (let i = 0; i < numberOfBombs; i++) {
       let x = Math.floor(Math.random() * this.size);
@@ -58,9 +75,9 @@ export default class Board extends React.Component {
           this.openCell(x, y);
         } else {
           this.markCell(x, y);
+          this.checkCompletion();
         }
         this.clickCount = 0;
-        this.checkCompletion();
       }, 240);
     }
   }
@@ -100,6 +117,12 @@ export default class Board extends React.Component {
   }
 
   openCell(x, y) {
+    const finalize = () => {
+      this.freeze = false;
+      this.setState({}); // Reflect this.freeze to the component
+      this.sleep(10).then(() => this.checkCompletion());
+    };
+
     if (this.depth === 0) {
       this.depth = 1;
     }
@@ -108,8 +131,7 @@ export default class Board extends React.Component {
     if (mark !== " " && mark !== "*" && mark !== "?") {
       this.depth--;
       if (this.depth === 0) {
-        this.freeze = false;
-        this.setState({}); // Reflect this.freeze to the component
+        finalize();
       }
       return;
     }
@@ -148,31 +170,29 @@ export default class Board extends React.Component {
             continue;
           }
           this.depth++;
-          this.sleep(10).then(r => this.openCell(x+dx, y+dy));
+          this.sleep(10).then(() => this.openCell(x+dx, y+dy));
         }
       }
     }
 
+    this.setState({field: this.field});
     this.depth--;
     if (this.depth === 0) {
-      this.freeze = false;
+      finalize();
     }
-    this.setState({field: this.field});
-    return;
   }
 
   render() {
-    let field_elements = [];
+    const field_elements = [];
     for (let y = 0; y < this.size; y++) {
-      let row_elements = [];
+      const row_elements = [];
       for (let x = 0; x < this.size; x++) {
         row_elements.push(<Cell key={x}
-            onClick={this.freeze ? null : () => this.onClick(x, y)}
-            mark={this.state.field[y][x]}/>);
-      };
+          onClick={this.freeze ? null : () => this.onClick(x, y)}
+          mark={this.state.field[y][x]}/>);
+      }
       field_elements.push(<div key={y} className="board-row">{row_elements}</div>);
     };
-
     const field = (
       <>
         {field_elements}

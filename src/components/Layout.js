@@ -20,9 +20,12 @@ export default class Layout extends React.Component {
       message: "Good Luck...",
       showUndo: "hidden",
       timerStatus: "start",
-    }
+    };
     this.BoardRef = React.createRef();
     this.ConfigRef = React.createRef();
+    this.sleep = (milliseconds) => {
+      return new Promise(resolve => setTimeout(resolve, milliseconds))
+    };
   }
 
   undo() {
@@ -37,14 +40,15 @@ export default class Layout extends React.Component {
   restart() {
     const boardSize = this.ConfigRef.current.state.boardSize;
     const level = this.ConfigRef.current.state.level;
-    this.gameID = new Date().getTime();
     this.setState({
       message: "Good Luck...",
       showUndo: "hidden",
       size: boardSize,
       level: level,
-      timerStatus: this.gameID, // random string to reset
+      timerStatus: "reset",
     });
+    this.gameID = new Date().getTime();
+    this.sleep(100).then(() => this.setState({timerStatus: "start"}));
   }
 
   onFinish(isWin) {
