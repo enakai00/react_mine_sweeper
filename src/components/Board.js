@@ -70,16 +70,21 @@ export default class Board extends React.Component {
   }
 
   onClick(x, y) {
+    const singleClick = () => {
+      this.markCell(x, y);
+      this.checkCompletion();
+    };
+    const doubleClick = () => {
+      this.openCell(x, y);
+    };
+
     this.clickCount++;
     if (this.clickCount < 2) {
       setTimeout(() => {
-        if (this.clickCount > 1) {
-          // Single click
-          this.openCell(x, y);
+        if (this.clickCount >= 2) {
+          doubleClick();
         } else {
-          // Double click
-          this.markCell(x, y);
-          this.checkCompletion();
+          singleClick();
         }
         this.clickCount = 0;
       }, 240);
