@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Box } from "@chakra-ui/react";
 import {
   Slider,
@@ -9,35 +9,34 @@ import {
 } from '@chakra-ui/react';
 
 
-export default class Config extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      boardSize: 8,
-      level: 1,
-    };
+export const Config = (props) => {
+  const [boardSize, setBoardSize] = useState(8);
+  const [level, setLevel] = useState(1);
 
-  }
-
-  render() {
-    const levelStrings = {0: "Easy", 1: "Normal", 2: "Hard"}
-    let element = (
+  const levelStrings = {0: "Easy", 1: "Normal", 2: "Hard"};
+  let element = (
       <>
         <Box mb="2" pt="2" fontSize="xl" w="full">Configuration</Box>
-        <Box>Board Size: {this.state.boardSize}</Box>
+        <Box>Board Size: {boardSize}</Box>
         <Box p="2" pr="10" width="xs">
-          <Slider defaultValue={8} min={4} max={16} value={this.state.boardSize}
-            onChange={(val) => this.setState({boardSize: Number(val)})}>
+          <Slider defaultValue={8} min={4} max={16} value={boardSize}
+            onChange={(val) => {
+		    setBoardSize(Number(val));
+		    props.setConfig.size(boardSize);
+	    }}>
             <SliderTrack bg='blue.100'>
               <SliderFilledTrack bg='blue.400' />
             </SliderTrack>
             <SliderThumb /><SliderMark />
           </Slider>
         </Box>
-        <Box>Game Level: {levelStrings[this.state.level]}</Box>
+        <Box>Game Level: {levelStrings[level]}</Box>
         <Box p="2" pr="40" width="xs">
-          <Slider defaultValue={1} min={0} max={2} value={this.state.level}
-            onChange={(val) => this.setState({level: Number(val)})}>
+          <Slider defaultValue={1} min={0} max={2} value={level}
+            onChange={(val) => {
+		    setLevel(Number(val));
+		    props.setConfig.level(level);
+	    }}>
             <SliderTrack bg='blue.100'>
               <SliderFilledTrack bg='blue.400' />
             </SliderTrack>
@@ -45,7 +44,6 @@ export default class Config extends React.Component {
           </Slider>
         </Box>
       </>
-    );
-    return element;
-  }
+  );
+  return element;
 }

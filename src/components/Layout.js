@@ -1,100 +1,89 @@
-import React from "react";
+import React, { useState, useRef } from "react";
 import { Container, Stack, Heading, Box, Button } from "@chakra-ui/react";
 
-import Board from "./Board";
-import Timer from "./Timer";
-import Config from "./Config";
+import { Board } from "./Board";
+import { Timer } from "./Timer";
+import { Config } from "./Config";
 
 
-export default class Layout extends React.Component {
-  constructor(props) {
-    super(props);
-    this.onFinish = this.onFinish.bind(this);
-    this.restart = this.restart.bind(this);
-    this.undo = this.undo.bind(this);
-    this.gameID = new Date().getTime();
-    this.state = {
-      size: 8,
-      level: 1,
-      message: "Good Luck...",
-      showUndo: "hidden",
-      timerStatus: "start",
-    };
-    this.BoardRef = React.createRef();
-    this.ConfigRef = React.createRef();
-    this.sleep = (milliseconds) => {
-      return new Promise(resolve => setTimeout(resolve, milliseconds))
-    };
-  }
+export const Layout = (props) => {
+  const defaultSize = 8;
+  const defaultLevel = 1;
+  const [gameID, setGameID] = useState(new Date().getTime());
+  const [size, setSize] = useState(defaultSize);
+  const [level, setLevel] = useState(defaultLevel);
+  const [configSize, setConfigSize] = useState(defaultSize);
+  const [configLevel, setConfigLevel] = useState(defaultLevel);
+  const [message, setMessage] = useState("Good Luck...");
+  const [showUndo, setShowUndo] = useState("hidden");
+  const [timerStatus, setTimerStatus] = useState("start");
 
-  undo() {
-    this.setState({
-      showUndo: "hidden",
-      message: "Good Luck...",
-    });
-    this.setState({timerStatus: "start"});
-    this.BoardRef.current.undo();
-  }
+  const undoRef = useRef([]);
+  const undo = () => {
+    setShowUndo("hidden");
+    setMessage("Good Luck...");
+    setTimerStatus("start");
+    undoRef.current = []; // Execute `undo()` of the Board component.
+  };
 
-  restart() {
+  const restart = () => {
     const doResetStatus = new Promise(resolve => {
-      const boardSize = this.ConfigRef.current.state.boardSize;
-      const level = this.ConfigRef.current.state.level;
-      this.setState({
-        message: "Good Luck...",
-        showUndo: "hidden",
-        size: boardSize,
-        level: level,
-        timerStatus: "reset",
-      });
+      const boardSize = configSize;
+      const level = configLevel;
+      setMessage("Good Luck...");
+      setShowUndo("hidden");
+      setSize(boardSize);
+      setLevel(level);
+      setTimerStatus("reset");
       resolve();
     });
+    // Need to wait for the timer to be reset asynchronously.
     doResetStatus.then(() => {
-      this.gameID = new Date().getTime();
-      this.setState({timerStatus: "start"});
+      setGameID(new Date().getTime());
+      setTimerStatus("start");
     });
-  }
+  };
 
-  onFinish(isWin) {
+  const onFinish = (isWin) => {
     let message = "";
-    this.setState({timerStatus: "stop"});
+    setTimerStatus("stop");
     if (isWin) {
       message = "Congratulations!";
-      this.setState({message: message});
+      setMessage(message);
     } else {
       message = "Bomb!!!";
-      this.setState({
-        message: message,
-        showUndo: "visible",
-      });
+      setMessage(message);
+      setShowUndo("visible");
     }
-  }
+  };
 
-  render() {
-    const size = this.state.size;
-    const level = this.state.level;
+  const setConfig = {
+    size: setConfigSize,
+    level: setConfigLevel,
+  };
 
-    const element = (
+  const element = (
       <Container p="8" minWidth="2xl" maxWidth="2xl">
         <Stack spacing="1">
           <Heading m="2" as="h1" fontSize="3xl" w="full">MineSweeper</Heading>
         </Stack>
         <Stack spacing="0">
-          <Board ref={this.BoardRef} key={this.gameID} onFinish={this.onFinish}
-            level={level} size={size}/>
+	  {/* undoRef.current is used to execute `undo()` of the Board component. */}
+          <Board key={gameID} onFinish={onFinish}
+	         level={level} size={size} undo={undoRef.current}/>
         </Stack>
         <Stack spacing="1">
-          <Timer status={this.state.timerStatus} text="Elapsed Time: []sec" />
-          <Box m="1" fontSize="2xl">{this.state.message}</Box>
+          <Timer status={timerStatus} text="Elapsed Time: []sec" />
+          <Box m="1" fontSize="2xl">{message}</Box>
           <Box><Button colorScheme="red" size="sm"
-            style={{ visibility: this.state.showUndo }}
-            onClick={this.undo}>Undo</Button></Box>
-          <Config ref={this.ConfigRef} />
+            style={{ visibility: showUndo }}
+            onClick={undo}>Undo</Button></Box>
+          <Config setConfig={setConfig} />
           <Box><Button colorScheme="blue" size="sm"
-            onClick={this.restart}>Restart</Button></Box>
+            onClick={restart}>Restart</Button></Box>
         </Stack>
       </Container>
-    );
-    return element;
-  }
+  );
+
+  return element;
 }

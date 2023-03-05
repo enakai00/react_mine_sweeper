@@ -42,7 +42,7 @@ const useTimer = (status) => {
 }
 
 
-export default function Timer(props) {
+export const Timer = (props) => {
   const count = useTimer(props.status);
   const text = props.text.replace("[]", count);
   const element = (

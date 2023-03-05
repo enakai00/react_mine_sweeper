@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import "./Board.css";
 
 
@@ -25,9 +25,8 @@ const Cell = (props) => {
 };
 
 
-export default class Board extends React.Component {
+class BoardInfo {
   constructor(props) {
-    super(props);
     this.size = props.size;
     this.level = props.level;
 
@@ -35,16 +34,15 @@ export default class Board extends React.Component {
     this.lastCell = [0, 0];
     this.depth = 0;
     this.clickCount = 0;
-    this.field = new Array(this.size)
     this.bombs = new Array(this.size)
+    this.field = new Array(this.size)
 
     for (let y = 0; y < this.size; y++) {
-      this.field[y] = new Array(this.size);
       this.bombs[y] = new Array(this.size);
-      this.field[y].fill(" ");
       this.bombs[y].fill(false);
+      this.field[y] = new Array(this.size);
+      this.field[y].fill(" ");
     }
-
     const numberOfBombs = Math.floor(
         this.size * this.size * 0.1 * (this.level+1));
     for (let i = 0; i < numberOfBombs; i++) {
@@ -52,165 +50,168 @@ export default class Board extends React.Component {
       let y = Math.floor(Math.random() * this.size);
       this.bombs[y][x] = true;
     }
-
-    this.sleep = (milliseconds) => {
-      return new Promise(resolve => setTimeout(resolve, milliseconds))
-    }
-
-    this.state = {
-      field: this.field,
-    }
   }
+}
 
-  undo() {
-    let [x, y] = this.lastCell;
-    this.field[y][x] = " ";
-    this.setState({field: this.field});
-    this.freeze = false;
-  }
 
-  onClick(x, y) {
+export const Board = (props) => {
+  const boardInfo = useRef(new BoardInfo(props));
+  const size = boardInfo.current.size;
+  const field = boardInfo.current.field;
+  // Since `field` stores an array object, updating it doesn't rerender the component.
+  // Instead, dummyState is used to rerender the compoent.
+  // eslint-disable-next-line
+  const [dummyState, setDummyState] = useState([]);
+
+  const sleep = (milliseconds) => {
+    return new Promise(resolve => setTimeout(resolve, milliseconds))
+  };
+
+  const undo = () => {
+      let [x, y] = boardInfo.current.lastCell;
+      boardInfo.current.freeze = false;
+      field[y][x] = " ";
+      setDummyState([]);
+  };
+  useEffect(undo, [props.undo]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const onClick = (x, y) => {
     const singleClick = () => {
-      this.markCell(x, y);
-      this.checkCompletion();
+      markCell(x, y);
+      checkCompletion();
     };
     const doubleClick = () => {
-      this.openCell(x, y);
+      openCell(x, y);
     };
 
-    this.clickCount++;
-    if (this.clickCount < 2) {
+    boardInfo.current.clickCount++;
+    if (boardInfo.current.clickCount < 2) {
       setTimeout(() => {
-        if (this.clickCount >= 2) {
+        if (boardInfo.current.clickCount >= 2) {
           doubleClick();
         } else {
           singleClick();
         }
-        this.clickCount = 0;
+        boardInfo.current.clickCount = 0;
       }, 240);
     }
-  }
+  };
 
-  checkCompletion() {
-    for (let y = 0; y < this.size; y++) {
-      for (let x = 0; x < this.size; x++) {
-        let mark = this.field[y][x];
+  const checkCompletion = () => {
+    for (let y = 0; y < boardInfo.current.size; y++) {
+      for (let x = 0; x < boardInfo.current.size; x++) {
+        let mark = field[y][x];
         if (mark === " " || mark === "?") {
           return;
         }
-        if (mark === "*" && this.bombs[y][x] === false) {
+        if (mark === "*" && boardInfo.current.bombs[y][x] === false) {
           return;
         }
       }
     }
-    this.freeze = true;
-    this.props.onFinish(true);
-  }
+    boardInfo.current.freeze = true;
+    props.onFinish(true);
+  };
 
-  markCell(x, y) {
-    switch (this.field[y][x]) {
+  const markCell = (x, y) => {
+    switch (field[y][x]) {
       case " ":
-        this.field[y][x] = "*";
-        this.setState({field: this.field});
+        field[y][x] = "*";
         break
       case "*":
-        this.field[y][x] = "?";
-        this.setState({field: this.field});
+        field[y][x] = "?";
         break
       case "?":
-        this.field[y][x] = " ";
-        this.setState({field: this.field});
+        field[y][x] = " ";
         break
       default:
     }
-  }
+    setDummyState([]);
+  };
 
-  openCell(x, y) {
+  const openCell = (x, y) => {
     const finalize = () => {
       // Update states and check completion.
-      const doUpdate = new Promise(resolve => {
-        this.freeze = false;
-        this.setState({});
-        resolve();
-      });
-      doUpdate.then(() => this.checkCompletion());
+      boardInfo.current.freeze = false;
+      setDummyState([]);
+      checkCompletion();
     };
 
-    if (this.depth === 0) {
-      this.depth = 1;
+    if (boardInfo.current.depth === 0) {
+      boardInfo.current.depth = 1;
     }
-    this.freeze = true;
-    let mark = this.field[y][x];
+    boardInfo.current.freeze = true;
+    let mark = field[y][x];
     if (mark !== " " && mark !== "*" && mark !== "?") {
-      this.depth--;
-      if (this.depth === 0) {
+      boardInfo.current.depth--;
+      if (boardInfo.current.depth === 0) {
         finalize();
       }
       return;
     }
 
-    this.lastCell = [x, y];
-    if (this.bombs[y][x]) { // game over
-      this.field[y][x] = "X";
-      this.setState({field: this.field});
-      this.freeze = true;
-      this.props.onFinish(false);
+    boardInfo.current.lastCell = [x, y];
+    if (boardInfo.current.bombs[y][x]) { // game over
+      field[y][x] = "X";
+      boardInfo.current.freeze = true;
+      setDummyState([]);
+      props.onFinish(false);
       return;
     }
 
+    const size = boardInfo.current.size;
     let bombsCount = 0;
     for (let dy = -1; dy < 2; dy++) {
       for (let dx = -1; dx < 2; dx++) {
         if (dx === 0 && dy === 0) {
           continue;
         }
-        if (x+dx < 0 || x+dx >= this.size || y+dy < 0 || y+dy >= this.size) {
+        if (x+dx < 0 || x+dx >= size || y+dy < 0 || y+dy >= size) {
           continue;
         }
-        if (this.bombs[y+dy][x+dx]===true) {
+        if (boardInfo.current.bombs[y+dy][x+dx] === true) {
           bombsCount++;
         }
       }
     }
-    this.field[y][x] = bombsCount.toString();
+    field[y][x] = bombsCount.toString();
     if (bombsCount === 0) {
       for (let dy = -1; dy < 2; dy++) {
         for (let dx = -1; dx < 2; dx++) {
           if (dx === 0 && dy === 0) {
             continue;
           }
-          if (x+dx < 0 || x+dx >= this.size || y+dy < 0 || y+dy >= this.size) {
+          if (x+dx < 0 || x+dx >= size || y+dy < 0 || y+dy >= size) {
             continue;
           }
-          this.depth++;
-          this.sleep(10).then(() => this.openCell(x+dx, y+dy));
+          boardInfo.current.depth++;
+          sleep(10).then(() => openCell(x+dx, y+dy));
         }
       }
     }
 
-    this.setState({field: this.field});
-    this.depth--;
-    if (this.depth === 0) {
+    setDummyState([]);
+    boardInfo.current.depth--;
+    if (boardInfo.current.depth === 0) {
       finalize();
     }
-  }
+  };
 
-  render() {
-    const field_elements = [];
-    for (let y = 0; y < this.size; y++) {
-      const row_elements = [];
-      for (let x = 0; x < this.size; x++) {
-        row_elements.push(<Cell key={x}
-          onClick={this.freeze ? null : () => this.onClick(x, y)}
-          mark={this.state.field[y][x]}/>);
-      }
-      field_elements.push(<div key={y} className="board-row">{row_elements}</div>);
-    };
-    const field = (
-      <>
-        {field_elements}
-      </>
-    );
-    return field;
-  }
+  const field_elements = [];
+  for (let y = 0; y < size; y++) {
+    const row_elements = [];
+    for (let x = 0; x < size; x++) {
+      row_elements.push(<Cell key={x}
+        onClick={boardInfo.current.freeze ? null : () => onClick(x, y)}
+        mark={field[y][x]}/>);
+    }
+    field_elements.push(<div key={y} className="board-row">{row_elements}</div>);
+  };
+  const element = (
+    <>
+      {field_elements}
+    </>
+  );
+
+  return element;
 }
