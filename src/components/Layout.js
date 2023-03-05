@@ -12,11 +12,12 @@ export const Layout = (props) => {
   const [gameID, setGameID] = useState(new Date().getTime());
   const [size, setSize] = useState(defaultSize);
   const [level, setLevel] = useState(defaultLevel);
-  const [configSize, setConfigSize] = useState(defaultSize);
-  const [configLevel, setConfigLevel] = useState(defaultLevel);
   const [message, setMessage] = useState("Good Luck...");
   const [showUndo, setShowUndo] = useState("hidden");
   const [timerStatus, setTimerStatus] = useState("start");
+
+  const configSize = useRef(defaultSize);
+  const configLevel = useRef(defaultLevel);
 
   const undoRef = useRef([]);
   const undo = () => {
@@ -28,8 +29,8 @@ export const Layout = (props) => {
 
   const restart = () => {
     const doResetStatus = new Promise(resolve => {
-      const boardSize = configSize;
-      const level = configLevel;
+      const boardSize = configSize.current;
+      const level = configLevel.current;
       setMessage("Good Luck...");
       setShowUndo("hidden");
       setSize(boardSize);
@@ -58,8 +59,8 @@ export const Layout = (props) => {
   };
 
   const setConfig = {
-    size: setConfigSize,
-    level: setConfigLevel,
+    size: configSize,
+    level: configLevel,
   };
 
   const element = (
