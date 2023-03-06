@@ -5,22 +5,12 @@
 }
 
 .cell {
-  background: #ddd;
-  border: 1px solid #ccc;
   float: left;
-  font-family: monospace;
-  font-size: 24px;
-  font-weight: bold;
-  line-height: 34px;
-  height: 34px;
+  height: 32px;
   margin-right: -1px;
   margin-top: -1px;
   padding: 0;
-  text-align: center;
-  width: 34px;
-}
-
-.cell_open {
+  width: 32px;
   background: #fff;
 }
 

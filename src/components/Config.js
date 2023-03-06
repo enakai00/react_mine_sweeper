@@ -22,7 +22,7 @@ export const Config = (props) => {
           <Slider defaultValue={8} min={4} max={16} value={boardSize}
             onChange={(val) => {
 		    setBoardSize(Number(val));
-		    props.setConfig.size.current = boardSize;
+		    props.setConfig.size.current = Number(val);
 	    }}>
             <SliderTrack bg='blue.100'>
               <SliderFilledTrack bg='blue.400' />
@@ -35,7 +35,7 @@ export const Config = (props) => {
           <Slider defaultValue={1} min={0} max={2} value={level}
             onChange={(val) => {
 		    setLevel(Number(val));
-		    props.setConfig.level.current = level;
+		    props.setConfig.level.current = Number(val);
 	    }}>
             <SliderTrack bg='blue.100'>
               <SliderFilledTrack bg='blue.400' />

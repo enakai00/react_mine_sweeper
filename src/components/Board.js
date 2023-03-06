@@ -1,26 +1,33 @@
 import React, { useState, useRef, useEffect } from "react";
+import Spritesheet from "react-responsive-spritesheet";
+import sprites from "../assets/sprites.png";
 import "./Board.css";
 
 
 const Cell = (props) => {
-  const nums = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
+  const nums = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+  const mark_pos = {" ": 3, "?": 7, "*": 5};
   var element;
 
-  if (props.mark === "0") {
+  if (nums.includes(props.mark)) {
     element = (
-      <button className="cell cell_open" />
+      <Spritesheet image={sprites} className="cell"
+	    widthFrame={32} heightFrame={32}
+            startAt={12+Number(props.mark)} endAt={12+Number(props.mark)} />
     );
-  } else if (nums.includes(props.mark)) {
+  } else if (Object.keys(mark_pos).includes(props.mark)) {
     element = (
-      <button className="cell cell_open">{props.mark}</button>
+      <Spritesheet image={sprites} className="cell" onClick={props.onClick}
+	    widthFrame={32} heightFrame={32}
+            startAt={mark_pos[props.mark]} endAt={mark_pos[props.mark]} />
     );
-  } else {
+  } else if (props.mark === "X") {
     element = (
-      <button className="cell" onClick={props.onClick}>
-      {props.mark}</button>
+      <Spritesheet image={sprites} className="cell"
+	    widthFrame={32} heightFrame={32}
+            startAt={9} endAt={9} />
     );
   }
-
   return element;
 };
 
@@ -56,8 +63,7 @@ class BoardInfo {
 
 export const Board = (props) => {
   const boardInfo = useRef(new BoardInfo(props));
-  const size = boardInfo.current.size;
-  const field = boardInfo.current.field;
+  const info = boardInfo.current;
   // Since `field` stores an array object, updating it doesn't rerender the component.
   // Instead, dummyState is used to rerender the compoent.
   // eslint-disable-next-line
@@ -68,9 +74,9 @@ export const Board = (props) => {
   };
 
   const undo = () => {
-      let [x, y] = boardInfo.current.lastCell;
-      boardInfo.current.freeze = false;
-      field[y][x] = " ";
+      let [x, y] = info.lastCell;
+      info.freeze = false;
+      info.field[y][x] = " ";
       setDummyState([]);
   };
   useEffect(undo, [props.undo]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -84,45 +90,45 @@ export const Board = (props) => {
       openCell(x, y);
     };
 
-    boardInfo.current.clickCount++;
-    if (boardInfo.current.clickCount < 2) {
+    info.clickCount++;
+    if (info.clickCount < 2) {
       setTimeout(() => {
-        if (boardInfo.current.clickCount >= 2) {
+        if (info.clickCount >= 2) {
           doubleClick();
         } else {
           singleClick();
         }
-        boardInfo.current.clickCount = 0;
+        info.clickCount = 0;
       }, 240);
     }
   };
 
   const checkCompletion = () => {
-    for (let y = 0; y < boardInfo.current.size; y++) {
-      for (let x = 0; x < boardInfo.current.size; x++) {
-        let mark = field[y][x];
+    for (let y = 0; y < info.size; y++) {
+      for (let x = 0; x < info.size; x++) {
+        let mark = info.field[y][x];
         if (mark === " " || mark === "?") {
           return;
         }
-        if (mark === "*" && boardInfo.current.bombs[y][x] === false) {
+        if (mark === "*" && info.bombs[y][x] === false) {
           return;
         }
       }
     }
-    boardInfo.current.freeze = true;
+    info.freeze = true;
     props.onFinish(true);
   };
 
   const markCell = (x, y) => {
-    switch (field[y][x]) {
+    switch (info.field[y][x]) {
       case " ":
-        field[y][x] = "*";
+        info.field[y][x] = "*";
         break
       case "*":
-        field[y][x] = "?";
+        info.field[y][x] = "?";
         break
       case "?":
-        field[y][x] = " ";
+        info.field[y][x] = " ";
         break
       default:
     }
@@ -132,78 +138,78 @@ export const Board = (props) => {
   const openCell = (x, y) => {
     const finalize = () => {
       // Update states and check completion.
-      boardInfo.current.freeze = false;
+      info.freeze = false;
       setDummyState([]);
       checkCompletion();
     };
 
-    if (boardInfo.current.depth === 0) {
-      boardInfo.current.depth = 1;
+    if (info.depth === 0) {
+      info.depth = 1;
     }
-    boardInfo.current.freeze = true;
-    let mark = field[y][x];
+    info.freeze = true;
+    let mark = info.field[y][x];
     if (mark !== " " && mark !== "*" && mark !== "?") {
-      boardInfo.current.depth--;
-      if (boardInfo.current.depth === 0) {
+      info.depth--;
+      if (info.depth === 0) {
         finalize();
       }
       return;
     }
 
-    boardInfo.current.lastCell = [x, y];
-    if (boardInfo.current.bombs[y][x]) { // game over
-      field[y][x] = "X";
-      boardInfo.current.freeze = true;
+    info.lastCell = [x, y];
+    if (info.bombs[y][x]) { // game over
+      info.field[y][x] = "X";
+      info.freeze = true;
       setDummyState([]);
       props.onFinish(false);
       return;
     }
 
-    const size = boardInfo.current.size;
     let bombsCount = 0;
     for (let dy = -1; dy < 2; dy++) {
       for (let dx = -1; dx < 2; dx++) {
         if (dx === 0 && dy === 0) {
           continue;
         }
-        if (x+dx < 0 || x+dx >= size || y+dy < 0 || y+dy >= size) {
+        if (x+dx < 0 || x+dx >= info.size || y+dy < 0 || y+dy >= info.size) {
           continue;
         }
-        if (boardInfo.current.bombs[y+dy][x+dx] === true) {
+        if (info.bombs[y+dy][x+dx] === true) {
           bombsCount++;
         }
       }
     }
-    field[y][x] = bombsCount.toString();
+    info.field[y][x] = bombsCount.toString();
     if (bombsCount === 0) {
       for (let dy = -1; dy < 2; dy++) {
         for (let dx = -1; dx < 2; dx++) {
           if (dx === 0 && dy === 0) {
             continue;
           }
-          if (x+dx < 0 || x+dx >= size || y+dy < 0 || y+dy >= size) {
+          if (x+dx < 0 || x+dx >= info.size || y+dy < 0 || y+dy >= info.size) {
             continue;
           }
-          boardInfo.current.depth++;
+          info.depth++;
           sleep(10).then(() => openCell(x+dx, y+dy));
         }
       }
     }
 
     setDummyState([]);
-    boardInfo.current.depth--;
-    if (boardInfo.current.depth === 0) {
+    info.depth--;
+    if (info.depth === 0) {
       finalize();
     }
   };
 
   const field_elements = [];
-  for (let y = 0; y < size; y++) {
+  for (let y = 0; y < info.size; y++) {
     const row_elements = [];
-    for (let x = 0; x < size; x++) {
-      row_elements.push(<Cell key={x}
-        onClick={boardInfo.current.freeze ? null : () => onClick(x, y)}
-        mark={field[y][x]}/>);
+    for (let x = 0; x < info.size; x++) {
+      // Add the cell value to the unique key so that modified cell will be rerendered.
+      row_elements.push(<Cell key={x.toString()+info.field[y][x]}
+        onClick={info.freeze ? null : () => onClick(x, y)}
+        mark={info.field[y][x]}/>);
     }
     field_elements.push(<div key={y} className="board-row">{row_elements}</div>);
   };
