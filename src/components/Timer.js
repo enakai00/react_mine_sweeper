@@ -32,7 +32,6 @@ const useTimer = (status) => {
       default: // reset
         setCount(0);
         stopTimer();
-        //startTimer();
     };
   };
 

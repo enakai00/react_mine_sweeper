@@ -27,22 +27,16 @@ export const Layout = (props) => {
     undoRef.current = []; // Execute `undo()` of the Board component.
   };
 
-  const restart = () => {
-    const doResetStatus = new Promise(resolve => {
-      const boardSize = configSize.current;
-      const level = configLevel.current;
-      setMessage("Good Luck...");
-      setShowUndo("hidden");
-      setSize(boardSize);
-      setLevel(level);
-      setTimerStatus("reset");
-      resolve();
-    });
-    // Need to wait for the timer to be reset asynchronously.
-    doResetStatus.then(() => {
-      setGameID(new Date().getTime());
-      setTimerStatus("start");
-    });
+  const restart = async () => {
+    const boardSize = configSize.current;
+    const level = configLevel.current;
+    setMessage("Good Luck...");
+    setShowUndo("hidden");
+    setSize(boardSize);
+    setLevel(level);
+    await setTimerStatus("reset"); // need to wait the timer to be reset.
+    setGameID(new Date().getTime());
+    setTimerStatus("start");
   };
 
   const onFinish = (isWin) => {
@@ -69,16 +63,16 @@ export const Layout = (props) => {
           <Heading m="2" as="h1" fontSize="3xl" w="full">MineSweeper</Heading>
         </Stack>
         <Stack spacing="0">
-	  {/* undoRef.current is used to execute `undo()` of the Board component. */}
+    {/* undoRef.current is used to execute `undo()` of the Board component. */}
           <Board key={gameID} onFinish={onFinish}
-	         level={level} size={size} undo={undoRef.current}/>
+           level={level} size={size} undo={undoRef.current}/>
         </Stack>
         <Stack spacing="1">
           <Timer status={timerStatus} text="Elapsed Time: []sec" />
           <Box m="1" fontSize="2xl">{message}</Box>
           <Box><Button colorScheme="red" size="sm"
-            style={{ visibility: showUndo }}
-            onClick={undo}>Undo</Button></Box>
+                       style={{ visibility: showUndo }}
+                       onClick={undo}>Undo</Button></Box>
           <Config setConfig={setConfig} />
           <Box><Button colorScheme="blue" size="sm"
             onClick={restart}>Restart</Button></Box>

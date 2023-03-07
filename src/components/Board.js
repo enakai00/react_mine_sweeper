@@ -12,19 +12,19 @@ const Cell = (props) => {
   if (nums.includes(props.mark)) {
     element = (
       <Spritesheet image={sprites} className="cell"
-	    widthFrame={32} heightFrame={32}
+            widthFrame={32} heightFrame={32}
             startAt={12+Number(props.mark)} endAt={12+Number(props.mark)} />
     );
   } else if (Object.keys(mark_pos).includes(props.mark)) {
     element = (
       <Spritesheet image={sprites} className="cell" onClick={props.onClick}
-	    widthFrame={32} heightFrame={32}
+            widthFrame={32} heightFrame={32}
             startAt={mark_pos[props.mark]} endAt={mark_pos[props.mark]} />
     );
   } else if (props.mark === "X") {
     element = (
       <Spritesheet image={sprites} className="cell"
-	    widthFrame={32} heightFrame={32}
+            widthFrame={32} heightFrame={32}
             startAt={9} endAt={9} />
     );
   }
@@ -135,7 +135,7 @@ export const Board = (props) => {
     setDummyState([]);
   };
 
-  const openCell = (x, y) => {
+  const openCell = async (x, y) => {
     const finalize = () => {
       // Update states and check completion.
       info.freeze = false;
@@ -190,7 +190,8 @@ export const Board = (props) => {
             continue;
           }
           info.depth++;
-          sleep(10).then(() => openCell(x+dx, y+dy));
+          await sleep(10);
+          openCell(x+dx, y+dy);
         }
       }
     }
@@ -212,7 +213,7 @@ export const Board = (props) => {
         mark={info.field[y][x]}/>);
     }
     field_elements.push(<div key={y} className="board-row">{row_elements}</div>);
-  };
+  }
   const element = (
     <>
       {field_elements}

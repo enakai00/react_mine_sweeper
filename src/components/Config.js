@@ -21,9 +21,9 @@ export const Config = (props) => {
         <Box p="2" pr="10" width="xs">
           <Slider defaultValue={8} min={4} max={16} value={boardSize}
             onChange={(val) => {
-		    setBoardSize(Number(val));
-		    props.setConfig.size.current = Number(val);
-	    }}>
+              setBoardSize(Number(val));
+              props.setConfig.size.current = Number(val);
+            }}>
             <SliderTrack bg='blue.100'>
               <SliderFilledTrack bg='blue.400' />
             </SliderTrack>
@@ -34,9 +34,9 @@ export const Config = (props) => {
         <Box p="2" pr="40" width="xs">
           <Slider defaultValue={1} min={0} max={2} value={level}
             onChange={(val) => {
-		    setLevel(Number(val));
-		    props.setConfig.level.current = Number(val);
-	    }}>
+              setLevel(Number(val));
+              props.setConfig.level.current = Number(val);
+            }}>
             <SliderTrack bg='blue.100'>
               <SliderFilledTrack bg='blue.400' />
             </SliderTrack>
@@ -45,5 +45,6 @@ export const Config = (props) => {
         </Box>
       </>
   );
+
   return element;
 }
